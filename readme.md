@@ -7,12 +7,13 @@ Following uses cases are under support as of now.
 - Unordered list
 - Image with `![image](link)`
 - Link with `[NameOfLink](link)`
+- Code block single line
 
 #### To be implemented
 - Support for ordered list 
 - Underline
 - Strike through
 - Quoting
-- Code block
+- Code block multiline
 - Optimization
 

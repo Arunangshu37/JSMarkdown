@@ -40,7 +40,7 @@
             let sentences = value.split('\n');
             
             sentences = sentences.map(v => v.concat('<br />'));
-            
+            let codeBlockMap = {};
             for (let index = 0; index < sentences.length; index++) {
                 let firstToken = sentences[index].split(' ')[0];
                 // handle heading
@@ -79,6 +79,18 @@
                     sentences[index] = newSentence;
                 }
 
+                // handle code block phrases
+                let phraseInsideCodeBlock = sentences[index].match(/\`(.*?)\`/gm);
+                if (phraseInsideCodeBlock && phraseInsideCodeBlock.length > 0) {
+                    let newSentence = sentences[index];
+                    for (let codeBlockPhrase of phraseInsideCodeBlock) {
+                        let codeBlockId = new Date().getTime().toString() + (Math.random()*10000).toString().substring(0,4);
+                        codeBlockMap = { ...codeBlockMap, [codeBlockId]: getCodeFormattedText(codeBlockPhrase.substring(1, (codeBlockPhrase.length - 1))) }
+                        newSentence = newSentence.replace(codeBlockPhrase, `<code data-highlighted="yes" id='${codeBlockId}'></code>`);
+                    }
+                    sentences[index] = newSentence;
+                }
+               
                 // handle linked phrases
                 let candidatesForLinkedPhrases = sentences[index].match(/\[(.*?)\]\((.*?)\)/gm);
                 if (candidatesForLinkedPhrases) {
@@ -122,8 +134,15 @@
                     }
                     sentences[index] = newSentence;
                 }
+               
             }
             markdownDisplay.innerHTML = sentences.join(' ');
+            Object.keys(codeBlockMap).forEach(id => {
+                const codeElement = document.getElementById(id);
+                if (codeElement) {
+                    codeElement.innerHTML = codeBlockMap[id];
+                }
+            });
         }
 
         // utility functions
@@ -144,6 +163,13 @@
             }
         }
 
+        function getCodeFormattedText(text) {
+            let antiHTMLText = text.replaceAll('<', '&lt;');
+            antiHTMLText = antiHTMLText.replaceAll('>', '&gt;');
+            console.log(antiHTMLText);
+            return antiHTMLText;
+        }
+
         // Tests
         // sunny side up scenario
         let val = `
@@ -156,8 +182,8 @@ and we start an _italic phrases._ We should not consider - or # when they are in
 - Bulleted points and then numbered points and quotations all could really get messy soon
 `;
         // parseTextToMarkdown(val);
-// val='![image] [link](https://www.google.com) ![link] (https://www.google.com) ![image](https://i.postimg.cc/0Np34PnL/code-journal.jpg)';
-// parseTextToMarkdown(val)
+val=' Image with `![image](link)` and this one `<h2>something crazy</h2>` ![image] [link](https://www.google.com) ![link] (https://www.google.com) ![image](https://i.postimg.cc/0Np34PnL/code-journal.jpg)';
+parseTextToMarkdown(val)
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
